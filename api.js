@@ -26,7 +26,7 @@ const pool = mysql.createPool(dbConfig);
 // Rota principal para obter todas as questões
 app.get('/api/questoes', async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM questoes');
+        const [rows] = await pool.query('SELECT * FROM questoes_oab');
         console.log(`INFO: Retornando ${rows.length} questões.`);
         res.json(rows);
     } catch (error) {
@@ -39,7 +39,7 @@ app.get('/api/questoes', async (req, res) => {
 app.get('/api/questoes/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        const sql = 'SELECT * FROM questoes WHERE id = ?';
+        const sql = 'SELECT * FROM questoes_oab WHERE id = ?';
         const [rows] = await pool.query(sql, [id]);
         if (rows.length > 0) {
             console.log(`INFO: Questão com ID ${id} encontrada.`);
@@ -59,7 +59,7 @@ app.get('/api/questoes/disciplina/:nome_disciplina', async (req, res) => {
     // A decodificação é feita automaticamente pelo Express
     const { nome_disciplina } = req.params;
     try {
-        const sql = 'SELECT * FROM questoes WHERE disciplina = ?';
+        const sql = 'SELECT * FROM questoes_oab WHERE disciplina = ?';
         const [rows] = await pool.query(sql, [nome_disciplina]);
         console.log(`INFO: Buscando por disciplina '${nome_disciplina}'. Encontradas ${rows.length} questões.`);
         res.json(rows);
@@ -73,7 +73,7 @@ app.get('/api/questoes/disciplina/:nome_disciplina', async (req, res) => {
 app.get('/api/questoes/assunto/:nome_assunto', async (req, res) => {
     const { nome_assunto } = req.params;
     try {
-        const sql = 'SELECT * FROM questoes WHERE assunto = ?';
+        const sql = 'SELECT * FROM questoes_oab WHERE assunto = ?';
         const [rows] = await pool.query(sql, [nome_assunto]);
         console.log(`INFO: Buscando por assunto '${nome_assunto}'. Encontradas ${rows.length} questões.`);
         res.json(rows);
@@ -86,7 +86,7 @@ app.get('/api/questoes/assunto/:nome_assunto', async (req, res) => {
 // Rota para obter UMA questão aleatória
 app.get('/api/questoes/aleatoria', async (req, res) => {
     try {
-        const sql = 'SELECT * FROM questoes ORDER BY RAND() LIMIT 1';
+        const sql = 'SELECT * FROM questoes_oab ORDER BY RAND() LIMIT 1';
         const [rows] = await pool.query(sql);
         if (rows.length > 0) {
             console.log(`INFO: Retornando questão aleatória ID ${rows[0].id}.`);
