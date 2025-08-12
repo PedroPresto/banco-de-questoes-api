@@ -13,30 +13,34 @@ jobs:
     # O tipo de máquina que vai rodar o workflow
     runs-on: ubuntu-latest
 
-    # Os passos que serão executados
-    steps:
-      # 1. Configura a chave SSH para poder se conectar à VPS
-      - name: Configurar Chave SSH
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+      # ... (cabeçalho e jobs) ...
 
-      # 2. Conecta na VPS e executa os comandos de deploy
-      - name: Deploy na VPS
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'EOF'
-            # NAVEGUE ATÉ A PASTA DO PROJETO NA VPS
-            # !!! IMPORTANTE: SUBSTITUA O CAMINHO ABAIXO PELO SEU CAMINHO REAL !!!
-            cd /home/pedro/banco-de-questoes-api
+      steps:
+        # 1. Configura a chave SSH para poder se conectar à VPS
+          - name: Configurar Chave SSH
+          uses: webfactory/ssh-agent@v0.5.3
+          with:
+            ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
 
-            # Baixa a versão mais recente do código
-            echo "--> Baixando a versão mais recente do código..."
-            git pull origin main
-
-            # Reconstrói e reinicia os contêineres com Docker Compose
-            echo "--> Reconstruindo e reiniciando os contêineres..."
-            docker-compose build
-            docker-compose up -d
-          
-            echo "--> Deploy concluído com sucesso!"
-          EOF
+          # 2. Conecta na VPS e executa os comandos de deploy
+          - name: Deploy na VPS
+            run: |
+              ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'EOF'
+                # NAVEGUE ATÉ A PASTA DO PROJETO NA VPS
+                cd /home/pedro/banco-de-questoes-api
+              
+                # Baixa a versão mais recente do código
+                echo "--> Baixando a versão mais recente do código..."
+                git pull origin main
+              
+                # Reconstrói e reinicia os contêineres com Docker Compose
+                echo "--> Reconstruindo e reiniciando os contêineres..."
+                docker-compose build
+                docker-compose up -d
+              
+                # EXECUTA O SCRIPT DE MIGRAÇÃO COM O ARQUIVO MAIS RECENTE
+                echo "--> Executando o script de migração..."
+                node migracao.js
+              
+                echo "--> Deploy concluído com sucesso!"
+              EOF
