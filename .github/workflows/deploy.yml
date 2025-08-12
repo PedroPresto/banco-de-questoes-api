@@ -9,7 +9,12 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy na VPS com appleboy/ssh-action
+      # Passo 1: Autentica e baixa o código do GitHub no servidor do Actions
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # Passo 2: Conecta à VPS e executa os comandos de deploy
+      - name: Deploy na VPS
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -18,20 +23,23 @@ jobs:
           script: |
             # NAVEGUE ATÉ A PASTA DO PROJETO NA VPS
             cd /home/pedro/banco-de-questoes-api
-            
-            # Baixa a versão mais recente do código
-            echo "--> Baixando a versão mais recente do código..."
-            # Usamos o protocolo HTTPS para evitar problemas de autenticação SSH com o git
-            git pull https://github.com/PedroPresto/banco-de-questoes-api.git main
-            
+
+            # Limpa o diretório para garantir que a cópia seja nova
+            echo "--> Limpando o diretório de projeto antigo..."
+            sudo rm -rf *
+
+            # Copia os arquivos do GitHub Actions para a VPS
+            echo "--> Copiando a nova versão do código para a VPS..."
+            sudo cp -r ${{ github.workspace }}/* .
+            sudo chown -R pedro:pedro .
+
             # Reconstrói e reinicia os contêineres com Docker Compose
             echo "--> Reconstruindo e reiniciando os contêineres..."
             docker-compose build
             docker-compose up -d
-            
+
             # Executa o script de migração de forma segura
             echo "--> Executando o script de migração..."
-            # Limpa a tabela antes de popular, para evitar dados duplicados
             docker exec mysql_banco_de_questoes mysql -u root -psenha BancoDeQuestoes -e "TRUNCATE TABLE questoes_oab;"
             node migracao.js
             
