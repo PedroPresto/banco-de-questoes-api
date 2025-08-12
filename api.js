@@ -48,16 +48,16 @@ app.get('/api/questoes/disciplinas', async (req, res) => {
     }
 });
 
-// Rota para obter todas as matérias únicas
+// Rota para obter todos os assuntos únicos
 app.get('/api/questoes/assunto', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT DISTINCT assunto FROM questoes_oab ORDER BY assunto');
-        const materias = rows.map(row => row.material); // Extrai apenas o nome da matéria
-        console.log(`INFO: Retornando ${materias.length} matérias únicas.`);
-        res.json(materias);
+        const assuntos = rows.map(row => row.assunto); // Extrai o nome do assunto
+        console.log(`INFO: Retornando ${assuntos.length} assuntos únicos.`);
+        res.json(assuntos);
     } catch (error) {
-        console.error("ERRO ao buscar matérias únicas:", error);
-        res.status(500).json({ erro: "Não foi possível buscar as matérias." });
+        console.error("ERRO ao buscar assuntos únicos:", error);
+        res.status(500).json({ erro: "Não foi possível buscar os assuntos." });
     }
 });
 
