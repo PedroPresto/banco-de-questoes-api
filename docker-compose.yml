@@ -10,7 +10,7 @@ services:
     restart: always # Sempre reinicia o contêiner se ele parar.
     environment:
       MYSQL_DATABASE: 'BancoDeQuestoes' # Cria o banco de dados automaticamente.
-      MYSQL_ROOT_PASSWORD: 'sua_senha_super_segura' # **IMPORTANTE: Troque por uma senha forte!**
+      MYSQL_ROOT_PASSWORD: 'senha' # **IMPORTANTE: Troque por uma senha forte!**
     ports:
       # Mapeia a porta 3306 do contêiner para a porta 3306 da sua VPS.
       # Isso permite que você se conecte ao banco de dados de fora, se precisar.
@@ -33,7 +33,7 @@ services:
       # Passa as variáveis de ambiente para a sua API Node.js.
       DB_HOST: 'db' # O nome do serviço do banco de dados! Docker resolve isso internamente.
       DB_USER: 'root'
-      DB_PASSWORD: 'sua_senha_super_segura' # **Use a mesma senha definida acima!**
+      DB_PASSWORD: 'senha' # **Use a mesma senha definida acima!**
       DB_DATABASE: 'BancoDeQuestoes'
     depends_on:
       - db # Garante que o contêiner da API só vai iniciar DEPOIS que o do banco de dados estiver pronto.

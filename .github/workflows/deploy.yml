@@ -1,0 +1,37 @@
+# Nome do seu workflow
+name: Deploy para VPS Hostinger
+
+# Define quando o workflow deve rodar
+on:
+  push:
+    branches:
+      - main # Roda toda vez que houver um push na branch 'main'
+
+# Define os "trabalhos" que serão executados
+jobs:
+  deploy:
+    # O tipo de máquina que vai rodar o workflow
+    runs-on: ubuntu-latest
+
+    # Os passos que serão executados
+    steps:
+      # 1. Configura a chave SSH para poder se conectar à VPS
+      - name: Configurar Chave SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      # 2. Conecta na VPS e executa os comandos de deploy
+      - name: Deploy na VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'EOF'
+            # Navega até a pasta do projeto na VPS
+            cd /caminho/para/banco-de-questoes-api
+
+            # Baixa a versão mais recente do código
+            git pull origin main
+
+            # Reconstrói e reinicia os contêineres com Docker Compose
+            docker-compose build
+            docker-compose up -d
+          EOF
