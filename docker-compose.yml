@@ -1,0 +1,43 @@
+# Define a versão do Docker Compose.
+version: '3.8'
+
+# Define os serviços (contêineres) que vamos rodar.
+services:
+  # Serviço do Banco de Dados MySQL
+  db:
+    image: mysql:8.0 # Usa a imagem oficial do MySQL versão 8.0.
+    container_name: mysql_banco_de_questoes # Nome do contêiner para fácil identificação.
+    restart: always # Sempre reinicia o contêiner se ele parar.
+    environment:
+      MYSQL_DATABASE: 'BancoDeQuestoes' # Cria o banco de dados automaticamente.
+      MYSQL_ROOT_PASSWORD: 'sua_senha_super_segura' # **IMPORTANTE: Troque por uma senha forte!**
+    ports:
+      # Mapeia a porta 3306 do contêiner para a porta 3306 da sua VPS.
+      # Isso permite que você se conecte ao banco de dados de fora, se precisar.
+      - "3306:3306"
+    volumes:
+      # Cria um volume chamado 'mysql_data' para persistir os dados do banco.
+      # Seus dados estarão seguros mesmo que o contêiner seja removido.
+      - mysql_data:/var/lib/mysql
+
+  # Serviço da API Node.js
+  api:
+    build: . # Constrói a imagem a partir do Dockerfile na pasta atual.
+    container_name: nodejs_api_questoes # Nome do contêiner.
+    restart: always
+    ports:
+      # Mapeia a porta 5000 do contêiner para a porta 5000 da sua VPS.
+      # É aqui que seu app React Native vai se conectar.
+      - "5000:5000"
+    environment:
+      # Passa as variáveis de ambiente para a sua API Node.js.
+      DB_HOST: 'db' # O nome do serviço do banco de dados! Docker resolve isso internamente.
+      DB_USER: 'root'
+      DB_PASSWORD: 'sua_senha_super_segura' # **Use a mesma senha definida acima!**
+      DB_DATABASE: 'BancoDeQuestoes'
+    depends_on:
+      - db # Garante que o contêiner da API só vai iniciar DEPOIS que o do banco de dados estiver pronto.
+
+# Define os volumes que serão gerenciados pelo Docker.
+volumes:
+  mysql_data:
