@@ -9,12 +9,23 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # Passo 1: Autentica e baixa o código do GitHub no servidor do Actions
+      # 1. Autentica e baixa o código do GitHub no servidor do Actions
       - name: Checkout do código
         uses: actions/checkout@v4
 
-      # Passo 2: Conecta à VPS e executa os comandos de deploy
-      - name: Deploy na VPS
+      # 2. Faz o deploy dos arquivos para a VPS com rsync via SSH
+      - name: Sincronizar arquivos para a VPS
+        uses: burnettk/rsync-action@master
+        with:
+          ssh_private_key: ${{ secrets.VPS_SSH_KEY }}
+          ssh_host: ${{ secrets.VPS_HOST }}
+          ssh_user: ${{ secrets.VPS_USERNAME }}
+          ssh_port: 22
+          source: ./
+          target: /home/pedro/banco-de-questoes-api/
+
+      # 3. Conecta na VPS e executa os comandos de Docker
+      - name: Executar comandos na VPS
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -23,15 +34,6 @@ jobs:
           script: |
             # NAVEGUE ATÉ A PASTA DO PROJETO NA VPS
             cd /home/pedro/banco-de-questoes-api
-
-            # Limpa o diretório para garantir que a cópia seja nova
-            echo "--> Limpando o diretório de projeto antigo..."
-            sudo rm -rf *
-
-            # Copia os arquivos do GitHub Actions para a VPS
-            echo "--> Copiando a nova versão do código para a VPS..."
-            sudo cp -r ${{ github.workspace }}/* .
-            sudo chown -R pedro:pedro .
 
             # Reconstrói e reinicia os contêineres com Docker Compose
             echo "--> Reconstruindo e reiniciando os contêineres..."
