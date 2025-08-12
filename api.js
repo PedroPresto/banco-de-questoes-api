@@ -1,4 +1,4 @@
-// Importa os pacotes necessários teste
+// Importa os pacotes necessários
 const express = require('express');
 const mysql = require('mysql2/promise'); // Usamos a versão com Promises para código mais limpo (async/await)
 const cors = require('cors');
@@ -35,33 +35,7 @@ app.get('/api/questoes', async (req, res) => {
     }
 });
 
-// Rota para obter todas as disciplinas únicas
-app.get('/api/questoes/disciplinas', async (req, res) => {
-    try {
-        const [rows] = await pool.query('SELECT DISTINCT disciplina FROM questoes_oab ORDER BY disciplina');
-        const disciplinas = rows.map(row => row.disciplina); // Extrai apenas o nome da disciplina
-        console.log(`INFO: Retornando ${disciplinas.length} disciplinas únicas.`);
-        res.json(disciplinas);
-    } catch (error) {
-        console.error("ERRO ao buscar disciplinas únicas:", error);
-        res.status(500).json({ erro: "Não foi possível buscar as disciplinas." });
-    }
-});
-
-// Rota para obter todos os assuntos únicos
-app.get('/api/questoes/assunto', async (req, res) => {
-    try {
-        const [rows] = await pool.query('SELECT DISTINCT assunto FROM questoes_oab ORDER BY assunto');
-        const assuntos = rows.map(row => row.assunto); // Extrai o nome do assunto
-        console.log(`INFO: Retornando ${assuntos.length} assuntos únicos.`);
-        res.json(assuntos);
-    } catch (error) {
-        console.error("ERRO ao buscar assuntos únicos:", error);
-        res.status(500).json({ erro: "Não foi possível buscar os assuntos." });
-    }
-});
-
-// Rota para obter UMA questão aleatória (Movida para aqui)
+// Rota para obter UMA questão aleatória
 app.get('/api/questoes/aleatoria', async (req, res) => {
     try {
         const sql = 'SELECT * FROM questoes_oab ORDER BY RAND() LIMIT 1';
@@ -78,7 +52,7 @@ app.get('/api/questoes/aleatoria', async (req, res) => {
     }
 });
 
-// Rota para obter questões por DISCIPLINA (Movida para aqui)
+// Rota para obter questões por DISCIPLINA
 app.get('/api/questoes/disciplina/:nome_disciplina', async (req, res) => {
     const { nome_disciplina } = req.params;
     try {
@@ -92,7 +66,7 @@ app.get('/api/questoes/disciplina/:nome_disciplina', async (req, res) => {
     }
 });
 
-// Rota para obter questões por ASSUNTO (Movida para aqui)
+// Rota para obter questões por ASSUNTO
 app.get('/api/questoes/assunto/:nome_assunto', async (req, res) => {
     const { nome_assunto } = req.params;
     try {
@@ -106,7 +80,7 @@ app.get('/api/questoes/assunto/:nome_assunto', async (req, res) => {
     }
 });
 
-// Rota para obter uma questão específica pelo ID (Agora vem depois das rotas mais específicas)
+// Rota para obter uma questão específica pelo ID
 app.get('/api/questoes/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -125,10 +99,36 @@ app.get('/api/questoes/:id', async (req, res) => {
     }
 });
 
+// Rota para obter todas as disciplinas únicas
+app.get('/api/questoes/disciplinas', async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT DISTINCT disciplina FROM questoes_oab ORDER BY disciplina');
+        const disciplinas = rows.map(row => row.disciplina);
+        console.log(`INFO: Retornando ${disciplinas.length} disciplinas únicas.`);
+        res.json(disciplinas);
+    } catch (error) {
+        console.error("ERRO ao buscar disciplinas únicas:", error);
+        res.status(500).json({ erro: "Não foi possível buscar as disciplinas." });
+    }
+});
+
+// Rota para obter todos os assuntos únicos
+app.get('/api/questoes/assunto', async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT DISTINCT assunto FROM questoes_oab ORDER BY assunto');
+        const assuntos = rows.map(row => row.assunto); // Correção: agora extrai a coluna 'assunto'
+        console.log(`INFO: Retornando ${assuntos.length} assuntos únicos.`);
+        res.json(assuntos);
+    } catch (error) {
+        console.error("ERRO ao buscar assuntos únicos:", error);
+        res.status(500).json({ erro: "Não foi possível buscar os assuntos." });
+    }
+});
+
 
 // --- EXECUÇÃO DO SERVIDOR ---
 const PORT = 5000;
-// '0.0.0.0' permite que a API seja acessível na sua rede locals
+// '0.0.0.0' permite que a API seja acessível na sua rede local
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor Node.js rodando em http://localhost:${PORT}`);
     console.log('API pronta para receber chamadas do seu app React Native!');
