@@ -8,7 +8,7 @@ const dbConfig = {
     host: '127.0.0.1', // Use '127.0.0.1' ou 'localhost' para conectar da sua máquina
     port: 3306,        // A porta que você expôs no docker-compose.yml
     user: 'root',
-    password: 'senha', // A senha que você definiu
+    password: 'senha', // A senha que você definiu.
     database: 'BancoDeQuestoes'
 };
 
