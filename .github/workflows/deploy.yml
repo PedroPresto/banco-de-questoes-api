@@ -1,7 +1,5 @@
-# Nome do seu workflow
 name: Deploy para VPS Hostinger
 
-# Define quando o workflow deve rodar
 on:
   push:
     branches:
@@ -18,29 +16,23 @@ jobs:
           ssh-keyscan ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-      # 1. Configura a chave SSH para poder se conectar à VPS
       - name: Configurar Chave SSH
         uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
 
-      # 2. Conecta na VPS e executa os comandos de deploy
       - name: Deploy na VPS
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'EOF'
-            # NAVEGUE ATÉ A PASTA DO PROJETO NA VPS
             cd /home/pedro/banco-de-questoes-api
 
-            # Baixa a versão mais recente do código
             echo "--> Baixando a versão mais recente do código..."
-            git pull origin main
+            git pull origin main || { echo "Falha ao atualizar o código. Abortando o deploy." && exit 1; }
 
-            # Reconstrói e reinicia os contêineres com Docker Compose
             echo "--> Reconstruindo e reiniciando os contêineres..."
             docker-compose build
             docker-compose up -d
 
-            # Executa o script de migração de forma segura
             echo "--> Executando o script de migração..."
             docker exec mysql_banco_de_questoes mysql -u root -psenha BancoDeQuestoes -e "TRUNCATE TABLE questoes_oab;"
             node migracao.js
