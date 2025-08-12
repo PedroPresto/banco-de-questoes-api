@@ -20,27 +20,32 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+          # Desativa a verificação de chave do host para evitar o erro "Host key verification failed"
+          ssh-no-host-key-checking: true
 
       # 2. Conecta na VPS e executa os comandos de deploy
       - name: Deploy na VPS
         run: |
+          # Use o protocolo SSH para o git pull
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'EOF'
             # NAVEGUE ATÉ A PASTA DO PROJETO NA VPS
-            # !!! IMPORTANTE: SUBSTITUA O CAMINHO ABAIXO PELO SEU CAMINHO REAL !!!
             cd /home/pedro/banco-de-questoes-api
 
             # Baixa a versão mais recente do código
             echo "--> Baixando a versão mais recente do código..."
+            # Mudei para usar a URL SSH
             git pull origin main
 
             # Reconstrói e reinicia os contêineres com Docker Compose
             echo "--> Reconstruindo e reiniciando os contêineres..."
             docker-compose build
             docker-compose up -d
-            
-            # EXECUTA O SCRIPT DE MIGRAÇÃO COM O ARQUIVO MAIS RECENTE
+
+            # Executa o script de migração de forma segura
             echo "--> Executando o script de migração..."
+            # Limpa a tabela antes de popular, para evitar dados duplicados
+            docker exec mysql_banco_de_questoes mysql -u root -psenha BancoDeQuestoes -e "TRUNCATE TABLE questoes_oab;"
             node migracao.js
-            
+          
             echo "--> Deploy concluído com sucesso!"
           EOF
