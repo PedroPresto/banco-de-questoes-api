@@ -25,13 +25,18 @@ jobs:
       - name: Deploy na VPS
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'EOF'
-            # Navega até a pasta do projeto na VPS
-            cd /caminho/para/banco-de-questoes-api
+            # NAVEGUE ATÉ A PASTA DO PROJETO NA VPS
+            # !!! IMPORTANTE: SUBSTITUA O CAMINHO ABAIXO PELO SEU CAMINHO REAL !!!
+            cd /home/pedro/banco-de-questoes-api
 
             # Baixa a versão mais recente do código
+            echo "--> Baixando a versão mais recente do código..."
             git pull origin main
 
             # Reconstrói e reinicia os contêineres com Docker Compose
+            echo "--> Reconstruindo e reiniciando os contêineres..."
             docker-compose build
             docker-compose up -d
+          
+            echo "--> Deploy concluído com sucesso!"
           EOF
