@@ -11,7 +11,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # NOVO PASSO: Adiciona a chave pública do host ao arquivo known_hosts
+      # Adiciona a chave pública do host para evitar erros de verificação
       - name: Adicionar chave do host
         run: |
           mkdir -p ~/.ssh
@@ -23,7 +23,6 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
-          ssh-no-host-key-checking: true
 
       # 2. Conecta na VPS e executa os comandos de deploy
       - name: Deploy na VPS
