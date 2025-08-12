@@ -2,7 +2,7 @@
 # A versão 'alpine' é super leve, ótima para produção.
 FROM node:18-alpine
 
-# Define o diretório de trabalho dentro do contêiner.
+# Define o diretório de trabalho dentro do contêiner..
 WORKDIR /usr/src/app
 
 # Copia os arquivos de dependências primeiro para aproveitar o cache do Docker.
