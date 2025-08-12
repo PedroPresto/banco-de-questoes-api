@@ -5,16 +5,19 @@ name: Deploy para VPS Hostinger
 on:
   push:
     branches:
-      - main # Roda toda vez que houver um push na branch 'main'
+      - main
 
-# Define os "trabalhos" que serão executados
 jobs:
   deploy:
-    # O tipo de máquina que vai rodar o workflow
     runs-on: ubuntu-latest
-
-    # Os passos que serão executados
     steps:
+      # NOVO PASSO: Adiciona a chave pública do host ao arquivo known_hosts
+      - name: Adicionar chave do host
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
       # 1. Configura a chave SSH para poder se conectar à VPS
       - name: Configurar Chave SSH
         uses: webfactory/ssh-agent@v0.5.3
@@ -33,7 +36,6 @@ jobs:
 
             # Baixa a versão mais recente do código
             echo "--> Baixando a versão mais recente do código..."
-            # Mudei para usar a URL SSH
             git pull origin main
 
             # Reconstrói e reinicia os contêineres com Docker Compose
@@ -43,7 +45,6 @@ jobs:
 
             # Executa o script de migração de forma segura
             echo "--> Executando o script de migração..."
-            # Limpa a tabela antes de popular, para evitar dados duplicados
             docker exec mysql_banco_de_questoes mysql -u root -psenha BancoDeQuestoes -e "TRUNCATE TABLE questoes_oab;"
             node migracao.js
           
