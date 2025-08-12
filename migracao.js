@@ -31,7 +31,7 @@ async function migrarDados() {
         let questoesInseridas = 0;
         for (const questao of questoes) {
             const sql = `
-                INSERT INTO questoes (
+                INSERT INTO questoes_oab (
                     disciplina, assunto, material, enunciado,
                     alternativa_a, alternativa_b, alternativa_c, alternativa_d,
                     gabarito, comentario

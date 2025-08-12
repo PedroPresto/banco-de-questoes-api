@@ -16,8 +16,7 @@ services:
       # Isso permite que você se conecte ao banco de dados de fora, se precisar.
       - "3306:3306"
     volumes:
-      # Cria um volume chamado 'mysql_data' para persistir os dados do banco.
-      # Seus dados estarão seguros mesmo que o contêiner seja removido.
+      - ./initdb:/docker-entrypoint-initdb.d
       - mysql_data:/var/lib/mysql
 
   # Serviço da API Node.js
