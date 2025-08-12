@@ -102,7 +102,7 @@ app.get('/api/questoes/:id', async (req, res) => {
 
 // --- EXECUÇÃO DO SERVIDOR ---
 const PORT = 5000;
-// '0.0.0.0' permite que a API seja acessível na sua rede local
+// '0.0.0.0' permite que a API seja acessível na sua rede locals
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor Node.js rodando em http://localhost:${PORT}`);
     console.log('API pronta para receber chamadas do seu app React Native!');
