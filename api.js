@@ -5,6 +5,7 @@ const cors = require('cors');
 
 // --- CONFIGURAÇÃO DA APLICAÇÃO EXPRESS ---
 const app = express();
+app.use(express.json()); // Habilita o Express a ler corpos de requisição em JSON
 app.use(cors()); // Habilita o CORS para todas as rotas
 
 // --- CONFIGURAÇÃO DO BANCO DE DADOS MYSQL ---
@@ -23,25 +24,70 @@ const pool = mysql.createPool(dbConfig);
 
 // --- DEFINIÇÃO DOS ENDPOINTS (MÉTODOS) DA API ---
 
-// Rota para obter questões por DISCIPLINA, ASSUNTO e QUANTIDADE
-app.get('/api/questoes/disciplina/:nome_disciplina/assunto/:nome_assunto/:quantidade', async (req, res) => {
-    const { nome_disciplina, nome_assunto, quantidade } = req.params;
-    const limit = parseInt(quantidade);
-    if (isNaN(limit) || limit <= 0) {
-        return res.status(400).json({ erro: "A quantidade deve ser um número inteiro positivo." });
+// Rota para obter uma lista de questões com base em uma lista de IDs (NOVO)
+app.post('/api/questoes/ids', async (req, res) => {
+    const { ids } = req.body;
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ erro: "O corpo da requisição deve ser um array de IDs." });
     }
 
     try {
-        const sql = 'SELECT * FROM questoes_oab WHERE disciplina = ? AND assunto = ? ORDER BY RAND() LIMIT ?';
-        const [rows] = await pool.query(sql, [nome_disciplina, nome_assunto, limit]);
-        console.log(`INFO: Buscando ${limit} questões por disciplina '${nome_disciplina}' e assunto '${nome_assunto}'. Encontradas ${rows.length} questões.`);
+        const sql = 'SELECT * FROM questoes_oab WHERE id IN (?)';
+        const [rows] = await pool.query(sql, [ids]);
+        console.log(`INFO: Buscando ${ids.length} questões por IDs. Encontradas ${rows.length} questões.`);
         res.json(rows);
     } catch (error) {
-        console.error(`ERRO ao buscar ${limit} questões por disciplina '${nome_disciplina}' e assunto '${nome_assunto}':`, error);
+        console.error("ERRO ao buscar questões por IDs:", error);
         res.status(500).json({ erro: "Não foi possível buscar as questões." });
     }
 });
 
+// Rota para obter questões aleatórias por DISCIPLINA e ASSUNTO
+app.get('/api/questoes/disciplina/:nome_disciplina/assunto/:nome_assunto/aleatoria', async (req, res) => {
+    const { nome_disciplina, nome_assunto } = req.params;
+    try {
+        const sql = 'SELECT * FROM questoes_oab WHERE disciplina = ? AND assunto = ? ORDER BY RAND() LIMIT 1';
+        const [rows] = await pool.query(sql, [nome_disciplina, nome_assunto]);
+        if (rows.length > 0) {
+            console.log(`INFO: Retornando questão aleatória da disciplina '${nome_disciplina}' e assunto '${nome_assunto}'.`);
+            res.json(rows[0]);
+        } else {
+            res.status(404).json({ erro: "Nenhuma questão encontrada para a combinação de disciplina e assunto." });
+        }
+    } catch (error) {
+        console.error(`ERRO ao buscar questão aleatória para a disciplina '${nome_disciplina}' e assunto '${nome_assunto}':`, error);
+        res.status(500).json({ erro: "Não foi possível buscar a questão." });
+    }
+});
+
+
+// Rota para obter a contagem de questões por DISCIPLINA (NOVO)
+app.get('/api/questoes/disciplina/:nome_disciplina/contagem', async (req, res) => {
+    const { nome_disciplina } = req.params;
+    try {
+        const [rows] = await pool.query('SELECT COUNT(*) AS total FROM questoes_oab WHERE disciplina = ?', [nome_disciplina]);
+        const contagem = rows[0].total;
+        console.log(`INFO: Contagem de questões para a disciplina '${nome_disciplina}': ${contagem}.`);
+        res.json({ total: contagem });
+    } catch (error) {
+        console.error(`ERRO ao buscar contagem de questões para a disciplina '${nome_disciplina}':`, error);
+        res.status(500).json({ erro: "Não foi possível buscar a contagem de questões." });
+    }
+});
+
+// Rota para obter a contagem de questões por ASSUNTO (NOVO)
+app.get('/api/questoes/assunto/:nome_assunto/contagem', async (req, res) => {
+    const { nome_assunto } = req.params;
+    try {
+        const [rows] = await pool.query('SELECT COUNT(*) AS total FROM questoes_oab WHERE assunto = ?', [nome_assunto]);
+        const contagem = rows[0].total;
+        console.log(`INFO: Contagem de questões para o assunto '${nome_assunto}': ${contagem}.`);
+        res.json({ total: contagem });
+    } catch (error) {
+        console.error(`ERRO ao buscar contagem de questões para o assunto '${nome_assunto}':`, error);
+        res.status(500).json({ erro: "Não foi possível buscar a contagem de questões." });
+    }
+});
 
 // Rota para obter questões por DISCIPLINA e QUANTIDADE
 app.get('/api/questoes/disciplina/:nome_disciplina/:quantidade', async (req, res) => {
@@ -81,7 +127,7 @@ app.get('/api/questoes/assunto/:nome_assunto/:quantidade', async (req, res) => {
     }
 });
 
-// Rota para obter UMA questão aleatória de uma DISCIPLINA específica
+// Rota para obter questões aleatórias por DISCIPLINA (NOVO)
 app.get('/api/questoes/disciplina/:nome_disciplina/aleatoria', async (req, res) => {
     const { nome_disciplina } = req.params;
     try {
@@ -99,7 +145,7 @@ app.get('/api/questoes/disciplina/:nome_disciplina/aleatoria', async (req, res) 
     }
 });
 
-// Rota para obter UMA questão aleatória de um ASSUNTO específico
+// Rota para obter questões aleatórias por ASSUNTO (NOVO)
 app.get('/api/questoes/assunto/:nome_assunto/aleatoria', async (req, res) => {
     const { nome_assunto } = req.params;
     try {
@@ -116,6 +162,7 @@ app.get('/api/questoes/assunto/:nome_assunto/aleatoria', async (req, res) => {
         res.status(500).json({ erro: "Não foi possível buscar a questão." });
     }
 });
+
 
 // Rota principal para obter todas as questões
 app.get('/api/questoes', async (req, res) => {
@@ -171,6 +218,7 @@ app.get('/api/questoes/assunto', async (req, res) => {
         res.status(500).json({ erro: "Não foi possível buscar os assuntos." });
     }
 });
+
 
 // Rota para obter questões por DISCIPLINA
 app.get('/api/questoes/disciplina/:nome_disciplina', async (req, res) => {
