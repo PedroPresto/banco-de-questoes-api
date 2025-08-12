@@ -1,4 +1,4 @@
-// Importa os pacotes necessários
+// Importa os pacotes necessários teste
 const express = require('express');
 const mysql = require('mysql2/promise'); // Usamos a versão com Promises para código mais limpo (async/await)
 const cors = require('cors');
