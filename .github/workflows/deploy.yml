@@ -9,33 +9,30 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # Adiciona a chave pública do host para evitar erros de verificação
-      - name: Adicionar chave do host
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-
-      - name: Configurar Chave SSH
-        uses: webfactory/ssh-agent@v0.5.3
+      - name: Deploy na VPS com appleboy/ssh-action
+        uses: appleboy/ssh-action@master
         with:
-          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
-
-      - name: Deploy na VPS
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'EOF'
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            # NAVEGUE ATÉ A PASTA DO PROJETO NA VPS
             cd /home/pedro/banco-de-questoes-api
-
+            
+            # Baixa a versão mais recente do código
             echo "--> Baixando a versão mais recente do código..."
-            git pull origin main || { echo "Falha ao atualizar o código. Abortando o deploy." && exit 1; }
-
+            # Usamos o protocolo HTTPS para evitar problemas de autenticação SSH com o git
+            git pull https://github.com/PedroPresto/banco-de-questoes-api.git main
+            
+            # Reconstrói e reinicia os contêineres com Docker Compose
             echo "--> Reconstruindo e reiniciando os contêineres..."
             docker-compose build
             docker-compose up -d
-
+            
+            # Executa o script de migração de forma segura
             echo "--> Executando o script de migração..."
+            # Limpa a tabela antes de popular, para evitar dados duplicados
             docker exec mysql_banco_de_questoes mysql -u root -psenha BancoDeQuestoes -e "TRUNCATE TABLE questoes_oab;"
             node migracao.js
-          
+            
             echo "--> Deploy concluído com sucesso!"
-          EOF
