@@ -2,29 +2,30 @@ name: Deploy para VPS Hostinger
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      # 1. Autentica e baixa o código do GitHub no servidor do Actions
-      - name: Checkout do código
-        uses: actions/checkout@v4
+      # 1. Faz o checkout do código do seu repositório
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      # 2. Faz o deploy dos arquivos para a VPS com rsync via SSH
-      - name: Sincronizar arquivos para a VPS
-        uses: burnettk/rsync-action@master
+      # 2. Configura a chave SSH para acesso seguro ao VPS
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.2
         with:
-          ssh_private_key: ${{ secrets.VPS_SSH_KEY }}
-          ssh_host: ${{ secrets.VPS_HOST }}
-          ssh_user: ${{ secrets.VPS_USERNAME }}
-          ssh_port: 22
-          source: ./
-          target: /home/pedro/banco-de-questoes-api/
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
 
-      # 3. Conecta na VPS e executa os comandos de Docker
+      # 3. Copia os arquivos do projeto para a VPS com rsync
+      - name: Sincronizar arquivos para a VPS
+        run: |
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no -i $SSH_AUTH_SOCK" \
+          ./ ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:/home/${{ secrets.VPS_USERNAME }}/banco-de-questoes-api
+
+      # 4. Acessa a VPS e executa os comandos de deploy com Docker Compose
       - name: Executar comandos na VPS
         uses: appleboy/ssh-action@master
         with:
@@ -32,13 +33,14 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            # NAVEGUE ATÉ A PASTA DO PROJETO NA VPS
-            cd /home/pedro/banco-de-questoes-api
-
-            # Reconstrói e reinicia os contêineres com Docker Compose
-            echo "--> Reconstruindo e reiniciando os contêineres..."
-            docker-compose build
-            docker-compose up -d
+            # Navega até à pasta do projeto no servidor
+            cd /home/${{ secrets.VPS_USERNAME }}/banco-de-questoes-api
+            
+            # Para e remove os containers antigos
+            docker-compose down
+            
+            # Constrói e inicia os novos containers em segundo plano
+            docker-compose up --build -d
 
             # Executa o script de migração de forma segura
             echo "--> Executando o script de migração..."
