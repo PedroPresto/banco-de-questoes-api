@@ -49,9 +49,9 @@ app.get('/api/questoes/disciplinas', async (req, res) => {
 });
 
 // Rota para obter todas as matérias únicas
-app.get('/api/questoes/materias', async (req, res) => {
+app.get('/api/questoes/assunto', async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT DISTINCT material FROM questoes_oab ORDER BY material');
+        const [rows] = await pool.query('SELECT DISTINCT assunto FROM questoes_oab ORDER BY assunto');
         const materias = rows.map(row => row.material); // Extrai apenas o nome da matéria
         console.log(`INFO: Retornando ${materias.length} matérias únicas.`);
         res.json(materias);
