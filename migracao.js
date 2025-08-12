@@ -26,7 +26,7 @@ async function migrarDados() {
         connection = await mysql.createConnection(dbConfig);
         console.log("INFO: Conexão bem-sucedida.");
 
-        // 3. Inserir cada questão no banco de dados
+        // 3. Inserir cada questão no banco de dados d
         console.log("INFO: Iniciando a inserção dos dados...");
         let questoesInseridas = 0;
         for (const questao of questoes) {
