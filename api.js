@@ -35,6 +35,32 @@ app.get('/api/questoes', async (req, res) => {
     }
 });
 
+// Rota para obter todas as disciplinas únicas
+app.get('/api/questoes/disciplinas', async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT DISTINCT disciplina FROM questoes_oab ORDER BY disciplina');
+        const disciplinas = rows.map(row => row.disciplina); // Extrai apenas o nome da disciplina
+        console.log(`INFO: Retornando ${disciplinas.length} disciplinas únicas.`);
+        res.json(disciplinas);
+    } catch (error) {
+        console.error("ERRO ao buscar disciplinas únicas:", error);
+        res.status(500).json({ erro: "Não foi possível buscar as disciplinas." });
+    }
+});
+
+// Rota para obter todas as matérias únicas
+app.get('/api/questoes/materias', async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT DISTINCT material FROM questoes_oab ORDER BY material');
+        const materias = rows.map(row => row.material); // Extrai apenas o nome da matéria
+        console.log(`INFO: Retornando ${materias.length} matérias únicas.`);
+        res.json(materias);
+    } catch (error) {
+        console.error("ERRO ao buscar matérias únicas:", error);
+        res.status(500).json({ erro: "Não foi possível buscar as matérias." });
+    }
+});
+
 // Rota para obter UMA questão aleatória (Movida para aqui)
 app.get('/api/questoes/aleatoria', async (req, res) => {
     try {
