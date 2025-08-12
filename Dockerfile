@@ -12,7 +12,7 @@ COPY package*.json ./
 RUN npm install
 
 # Copia o resto do código da sua aplicação para o diretório de trabalho.
-COPY . .
+COPY .idea .
 
 # Expõe a porta 5000 para que possamos acessá-la de fora do contêiner.
 EXPOSE 5000
