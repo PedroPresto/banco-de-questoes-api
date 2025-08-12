@@ -35,7 +35,52 @@ app.get('/api/questoes', async (req, res) => {
     }
 });
 
-// Rota para obter uma questão específica pelo ID
+// Rota para obter UMA questão aleatória (Movida para aqui)
+app.get('/api/questoes/aleatoria', async (req, res) => {
+    try {
+        const sql = 'SELECT * FROM questoes_oab ORDER BY RAND() LIMIT 1';
+        const [rows] = await pool.query(sql);
+        if (rows.length > 0) {
+            console.log(`INFO: Retornando questão aleatória ID ${rows[0].id}.`);
+            res.json(rows[0]); // Retorna o objeto da questão, não uma lista
+        } else {
+            res.status(404).json({ erro: "Nenhuma questão encontrada no banco de dados." });
+        }
+    } catch (error) {
+        console.error("ERRO ao buscar questão aleatória:", error);
+        res.status(500).json({ erro: "Não foi possível buscar a questão." });
+    }
+});
+
+// Rota para obter questões por DISCIPLINA (Movida para aqui)
+app.get('/api/questoes/disciplina/:nome_disciplina', async (req, res) => {
+    const { nome_disciplina } = req.params;
+    try {
+        const sql = 'SELECT * FROM questoes_oab WHERE disciplina = ?';
+        const [rows] = await pool.query(sql, [nome_disciplina]);
+        console.log(`INFO: Buscando por disciplina '${nome_disciplina}'. Encontradas ${rows.length} questões.`);
+        res.json(rows);
+    } catch (error) {
+        console.error(`ERRO ao buscar por disciplina '${nome_disciplina}':`, error);
+        res.status(500).json({ erro: "Não foi possível buscar as questões." });
+    }
+});
+
+// Rota para obter questões por ASSUNTO (Movida para aqui)
+app.get('/api/questoes/assunto/:nome_assunto', async (req, res) => {
+    const { nome_assunto } = req.params;
+    try {
+        const sql = 'SELECT * FROM questoes_oab WHERE assunto = ?';
+        const [rows] = await pool.query(sql, [nome_assunto]);
+        console.log(`INFO: Buscando por assunto '${nome_assunto}'. Encontradas ${rows.length} questões.`);
+        res.json(rows);
+    } catch (error) {
+        console.error(`ERRO ao buscar por assunto '${nome_assunto}':`, error);
+        res.status(500).json({ erro: "Não foi possível buscar as questões." });
+    }
+});
+
+// Rota para obter uma questão específica pelo ID (Agora vem depois das rotas mais específicas)
 app.get('/api/questoes/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -50,52 +95,6 @@ app.get('/api/questoes/:id', async (req, res) => {
         }
     } catch (error) {
         console.error(`ERRO ao buscar questão por ID ${id}:`, error);
-        res.status(500).json({ erro: "Não foi possível buscar a questão." });
-    }
-});
-
-// Rota para obter questões por DISCIPLINA
-app.get('/api/questoes/disciplina/:nome_disciplina', async (req, res) => {
-    // A decodificação é feita automaticamente pelo Express
-    const { nome_disciplina } = req.params;
-    try {
-        const sql = 'SELECT * FROM questoes_oab WHERE disciplina = ?';
-        const [rows] = await pool.query(sql, [nome_disciplina]);
-        console.log(`INFO: Buscando por disciplina '${nome_disciplina}'. Encontradas ${rows.length} questões.`);
-        res.json(rows);
-    } catch (error) {
-        console.error(`ERRO ao buscar por disciplina '${nome_disciplina}':`, error);
-        res.status(500).json({ erro: "Não foi possível buscar as questões." });
-    }
-});
-
-// Rota para obter questões por ASSUNTO
-app.get('/api/questoes/assunto/:nome_assunto', async (req, res) => {
-    const { nome_assunto } = req.params;
-    try {
-        const sql = 'SELECT * FROM questoes_oab WHERE assunto = ?';
-        const [rows] = await pool.query(sql, [nome_assunto]);
-        console.log(`INFO: Buscando por assunto '${nome_assunto}'. Encontradas ${rows.length} questões.`);
-        res.json(rows);
-    } catch (error) {
-        console.error(`ERRO ao buscar por assunto '${nome_assunto}':`, error);
-        res.status(500).json({ erro: "Não foi possível buscar as questões." });
-    }
-});
-
-// Rota para obter UMA questão aleatória
-app.get('/api/questoes/aleatoria', async (req, res) => {
-    try {
-        const sql = 'SELECT * FROM questoes_oab ORDER BY RAND() LIMIT 1';
-        const [rows] = await pool.query(sql);
-        if (rows.length > 0) {
-            console.log(`INFO: Retornando questão aleatória ID ${rows[0].id}.`);
-            res.json(rows[0]); // Retorna o objeto da questão, não uma lista
-        } else {
-            res.status(404).json({ erro: "Nenhuma questão encontrada no banco de dados." });
-        }
-    } catch (error) {
-        console.error("ERRO ao buscar questão aleatória:", error);
         res.status(500).json({ erro: "Não foi possível buscar a questão." });
     }
 });
